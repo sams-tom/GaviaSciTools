@@ -1,13 +1,14 @@
 Gavia-Science-Tools
 ==============================
 
-A collection of tools to process and analyse data from Teledyne Gvaia Offshore Surveyor
+A collection of tools to process and analyse data from Teledyne Gavia Offshore Surveyor
 
-I am having issues when developing the functions used to process that data. If I make changes in the src folder thne I need to run
+I was having issues when developing the functions used to process that data. Running 
 
     python setup.py clean --all
     python setup.py develop
     
+seemed to resolve the problem.
 
 Project Organization
 ------------
