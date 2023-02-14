@@ -1,7 +1,7 @@
 Gavia-Science-Tools
 ==============================
 
-Creating a virtual envoronment 
+Creating a virtual environment using [this help](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands)
 
 `conda create -n myenv python=3.8`
 
