@@ -22,17 +22,10 @@ def concat_ascii_data(ddir):
 
 
 ### GAVIA CTD data
-def readctdlog(missionname,ldir,processedpath):    # get list of files
+def readctdlog(ldir,processedpath):    # get list of files
     ctdfiles=os.path.join(ldir,'*ctd-slocum*.xml')
     flelist=glob.glob(ctdfiles)
-    # determine if files are zipped. If yes, unzip, if no, continue
-    if not flelist:
-        ctdfiles=os.path.join(ldir,'*ctd-slocum*.xml.gz')    
-        import gzip, shutil
-        flelist=glob.glob(ctdfiles)
-        for i in flelist:
-            with gzip.open(i, 'r') as f_in, open( i[:-3], 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+        
     # for each file, read to pandas dataframe and concatenate
     for count, files in enumerate(flelist):
         if count==0:
@@ -41,23 +34,15 @@ def readctdlog(missionname,ldir,processedpath):    # get list of files
             df=pd.read_xml(files,names=None)
             ctdf=pd.concat([ctdf,df],ignore_index=True)
     # save as .csv file
-    ctdf.to_csv(os.path.join(processedpath,missionname+'CTDdata.csv'))   
+    ctdf.to_csv(os.path.join(processedpath,'CTDdata.csv'))   
 
     return ctdf
 
 
 # NAV LOG IS MORE COMPLEX XML THAT CANT BE READ BY THE PANDAS READ_XML SO NEED TO EXTRACT VARIABLES THEN MERGE WITH DATASTE CREATED BY READ_XML
-def readnavlog(missionname,ldir,processedpath):    # get list of files
+def readnavlog(ldir,processedpath):    # get list of files
     navfiles=os.path.join(ldir,'*navigator*.xml')
     flelist=glob.glob(navfiles)
-    # determine if files are zipped. If yes, unzip, if no, continue
-    if not flelist:
-        navfiles=os.path.join(ldir,'*navigator*.xml.gz')    
-        import gzip, shutil
-        flelist=glob.glob(navfiles)
-        for i in flelist:
-            with gzip.open(i, 'r') as f_in, open( i[:-3], 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
 
     # for each file, read to pandas dataframe and concatenate
     for count, files in enumerate(flelist):
@@ -253,25 +238,18 @@ def readnavlog(missionname,ldir,processedpath):    # get list of files
     nvdf["DRLon"]=nvdf["DRLon"].astype(float)
     
     # save as .csv file
-    newstr = missionname.replace("_", "-")
-    nvdf.to_csv(os.path.join(processedpath,newstr+'NAVdata.csv')) 
+    # newstr = missionname.replace("_", "-")
+    nvdf.to_csv(os.path.join(processedpath,'NAVdata.csv')) 
     
     return nvdf
 
 
 
 ### GPS data
-def readgpslog(missionname,ldir,processedpath):    # get list of files
+def readgpslog(ldir,processedpath):    # get list of files
     files=os.path.join(ldir,'*gps-*.xml')
     flelist=glob.glob(files)
-    # determine if files are zipped. If yes, unzip, if no, continue
-    if not flelist:
-        files=os.path.join(ldir,'*gps-*.xml.gz')    
-        import gzip, shutil
-        flelist=glob.glob(files)
-        for i in flelist:
-            with gzip.open(i, 'r') as f_in, open( i[:-3], 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+
     # for each file, read to pandas dataframe and concatenate
     for count, fles in enumerate(flelist):
         if count==0:
@@ -281,21 +259,14 @@ def readgpslog(missionname,ldir,processedpath):    # get list of files
             gpdf=pd.concat([gpdf,df],ignore_index=True)
     # save as .csv file
     os.makedirs('data/nav-files', exist_ok=True)  
-    gpdf.to_csv(os.path.join(processedpath,missionname+'GPSdata.csv'))     
+    gpdf.to_csv(os.path.join(processedpath,'GPSdata.csv'))     
     return gpdf
 
 ### SBP data
-def readsbplog(missionname,ldir,processedpath):    # get list of files
+def readsbplog(ldir,processedpath):    # get list of files
     files=os.path.join(ldir,'*sbp*.xml')
     flelist=glob.glob(files)
-    # determine if files are zipped. If yes, unzip, if no, continue
-    if not flelist:
-        files=os.path.join(ldir,'*sbp*.xml.gz')    
-        import gzip, shutil
-        flelist=glob.glob(files)
-        for i in flelist:
-            with gzip.open(i, 'r') as f_in, open( i[:-3], 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+
     # for each file, read to pandas dataframe and concatenate
     for count, fles in enumerate(flelist):
         if count==0:
@@ -304,21 +275,14 @@ def readsbplog(missionname,ldir,processedpath):    # get list of files
             df=pd.read_xml(fles,names=None)
             sbpdf=pd.concat([sbpdf,df],ignore_index=True)
     # save as .csv file
-    sbpdf.to_csv(os.path.join(processedpath,missionname+'SBPdata.csv'))       
+    sbpdf.to_csv(os.path.join(processedpath,'SBPdata.csv'))       
     return sbpdf
 
 ### AANDERAA data
-def readaandlog(missionname,ldir,processedpath):    # get list of files
+def readaandlog(ldir,processedpath):    # get list of files
     files=os.path.join(ldir,'*aanderaa*.xml')
     flelist=glob.glob(files)
-    # determine if files are zipped. If yes, unzip, if no, continue
-    if not flelist:
-        files=os.path.join(ldir,'*aanderaa*.xml.gz')    
-        import gzip, shutil
-        flelist=glob.glob(files)
-        for i in flelist:
-            with gzip.open(i, 'r') as f_in, open( i[:-3], 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+ 
     # for each file, read to pandas dataframe and concatenate
     for count, fles in enumerate(flelist):
         if count==0:
@@ -327,5 +291,5 @@ def readaandlog(missionname,ldir,processedpath):    # get list of files
             df=pd.read_xml(fles,names=None)
             aandf=pd.concat([aandf,df],ignore_index=True)
     # save as .csv file
-    aandf.to_csv(os.path.join(processedpath,missionname+'aanderaadata.csv'))   
+    aandf.to_csv(os.path.join(processedpath,'aanderaadata.csv'))   
     return aandf
