@@ -27,12 +27,15 @@ def readctdlog(ldir,processedpath):    # get list of files
     flelist=glob.glob(ctdfiles)
         
     # for each file, read to pandas dataframe and concatenate
-    for count, files in enumerate(flelist):
-        if count==0:
-            ctdf=pd.read_xml(files)
-        else:
-            df=pd.read_xml(files,names=None)
-            ctdf=pd.concat([ctdf,df],ignore_index=True)
+    for count, fles in enumerate(flelist):
+        xml = et.parse(fles)
+        element=xml.getroot().find('entry')
+        if element:
+            if count==0:
+                ctdf=pd.read_xml(fles)
+            else:
+                df=pd.read_xml(fles,names=None)
+                ctdf=pd.concat([ctdf,df],ignore_index=True)
     # save as .csv file
     ctdf.to_csv(os.path.join(processedpath,'CTDdata.csv'))   
 
@@ -249,7 +252,6 @@ def readnavlog(ldir,processedpath):    # get list of files
 def readgpslog(ldir,processedpath):    # get list of files
     files=os.path.join(ldir,'*gps-*.xml')
     flelist=glob.glob(files)
-
     # for each file, read to pandas dataframe and concatenate
     for count, fles in enumerate(flelist):
         if count==0:
@@ -266,14 +268,17 @@ def readgpslog(ldir,processedpath):    # get list of files
 def readsbplog(ldir,processedpath):    # get list of files
     files=os.path.join(ldir,'*sbp*.xml')
     flelist=glob.glob(files)
-
+    sbpdf = pd.DataFrame()
     # for each file, read to pandas dataframe and concatenate
     for count, fles in enumerate(flelist):
-        if count==0:
-            sbpdf=pd.read_xml(fles)
-        else:
-            df=pd.read_xml(fles,names=None)
-            sbpdf=pd.concat([sbpdf,df],ignore_index=True)
+        xml = et.parse(fles)
+        element=xml.getroot().find('entry')
+        if element:
+            if count==0:
+                sbpdf=pd.read_xml(fles)
+            else:
+                df=pd.read_xml(fles,names=None)
+                sbpdf=pd.concat([sbpdf,df],ignore_index=True)
     # save as .csv file
     sbpdf.to_csv(os.path.join(processedpath,'SBPdata.csv'))       
     return sbpdf
@@ -282,14 +287,17 @@ def readsbplog(ldir,processedpath):    # get list of files
 def readaandlog(ldir,processedpath):    # get list of files
     files=os.path.join(ldir,'*aanderaa*.xml')
     flelist=glob.glob(files)
- 
+    aandf = pd.DataFrame()
     # for each file, read to pandas dataframe and concatenate
     for count, fles in enumerate(flelist):
-        if count==0:
-            aandf=pd.read_xml(fles)
-        else:
-            df=pd.read_xml(fles,names=None)
-            aandf=pd.concat([aandf,df],ignore_index=True)
+        xml = et.parse(fles)
+        element=xml.getroot().find('entry')
+        if element:
+            if count==0:
+                aandf=pd.read_xml(fles)
+            else:
+                df=pd.read_xml(fles,names=None)
+                aandf=pd.concat([aandf,df],ignore_index=True)
     # save as .csv file
     aandf.to_csv(os.path.join(processedpath,'aanderaadata.csv'))   
     return aandf
