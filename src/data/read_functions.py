@@ -55,6 +55,7 @@ def readnavlog(ldir,processedpath):    # get list of files
             root = tree.getroot()
 
             drheading = []
+            drvelocity=[]
             drpitch=[]
             droll=[]
             drlat = []
@@ -63,6 +64,7 @@ def readnavlog(ldir,processedpath):    # get list of files
             pitch=[]
             roll=[]
             depth=[]
+            velocity=[]
             lat=[]
             lon=[]
 
@@ -75,6 +77,12 @@ def readnavlog(ldir,processedpath):    # get list of files
             for node in root.findall("./entry/dead-reckoning-orientation/roll"):
                 droll.append(node.text)
 
+            for node in root.findall("./entry/dead-reckoning-velocity/surge"):
+                drvelocity.append(node.text)           
+                
+            for node in root.findall("./entry/velocity/surge"):
+                velocity.append(node.text)            
+                
             for node in root.findall("./entry/dead-reckoning-position/lon"):
                 drlon.append(node.text)
 
@@ -100,8 +108,9 @@ def readnavlog(ldir,processedpath):    # get list of files
                 lon.append(ptch.text)    
 
             nddf = pd.DataFrame(
-                                   list(zip(drheading, drpitch, droll,drlat,drlon,heading, pitch, roll,depth,lat, lon)), 
-                                   columns=['DRHeading', 'DRPitch', 'DRRoll','DRLat','DRLon','Heading','Pitch','Roll','Depth','Lat','Lon'])  
+                                   list(zip(drheading,drvelocity, drpitch, droll,drlat,drlon,velocity,heading, pitch, roll,depth,lat, lon)), 
+                                   columns=['DRHeading', 'DRVelocity','DRPitch', 'DRRoll','DRLat','DRLon','speed','Heading','Pitch','Roll','Depth','Lat','Lon'])  
+
             nvdf=pd.concat([rtdf, nddf], axis=1)
 
         else:
@@ -110,6 +119,7 @@ def readnavlog(ldir,processedpath):    # get list of files
             root = tree.getroot()
 
             drheading = []
+            drvelocity=[]
             drpitch=[]
             droll=[]
             drlat = []
@@ -118,6 +128,7 @@ def readnavlog(ldir,processedpath):    # get list of files
             pitch=[]
             roll=[]
             depth=[]
+            velocity=[]
             lat=[]
             lon=[]
 
@@ -130,6 +141,12 @@ def readnavlog(ldir,processedpath):    # get list of files
             for node in root.findall("./entry/dead-reckoning-orientation/roll"):
                 droll.append(node.text)
 
+            for node in root.findall("./entry/dead-reckoning-velocity/surge"):
+                drvelocity.append(node.text)           
+                
+            for node in root.findall("./entry/velocity/surge"):
+                velocity.append(node.text)
+            
             for node in root.findall("./entry/dead-reckoning-position/lon"):
                 drlon.append(node.text)
 
@@ -153,10 +170,14 @@ def readnavlog(ldir,processedpath):    # get list of files
 
             for ptch in root.findall("./entry/position/lon"):
                 lon.append(ptch.text)    
+            
 
+            
             nddf = pd.DataFrame(
-                                   list(zip(drheading, drpitch, droll,drlat,drlon,heading, pitch, roll,depth,lat, lon)), 
-                                   columns=['DRHeading', 'DRPitch', 'DRRoll','DRLat','DRLon','Heading','Pitch','Roll','Depth','Lat','Lon'])  
+                                   list(zip(drheading,drvelocity, drpitch, droll,drlat,drlon,velocity,heading, pitch, roll,depth,lat, lon)), 
+                                   columns=['DRHeading', 'DRVelocity','DRPitch', 'DRRoll','DRLat','DRLon','speed','Heading','Pitch','Roll','Depth','Lat','Lon'])  
+
+            
             df=pd.concat([rtdf, nddf], axis=1)
 
             nvdf=pd.concat([nvdf,df],ignore_index=True)            
@@ -227,7 +248,7 @@ def readnavlog(ldir,processedpath):    # get list of files
     nvdf["Lon"]=nvdf["Lon"].astype(str).str.replace('W', '')
     nvdf["DRLat"]=nvdf["DRLat"].astype(str).str.replace('N', '')
     nvdf["DRLon"]=nvdf["DRLon"].astype(str).str.replace('W', '')
-    
+
     
     # CONVERT DATA TO NUMERIC 
     cols=[i for i in nvdf.columns if i not in ["time","timestamp"]]
