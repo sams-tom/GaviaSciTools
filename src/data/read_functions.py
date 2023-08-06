@@ -249,6 +249,24 @@ def readnavlog(ldir,processedpath):    # get list of files
     nvdf["DRLat"]=nvdf["DRLat"].astype(str).str.replace('N', '')
     nvdf["DRLon"]=nvdf["DRLon"].astype(str).str.replace('W', '')
 
+
+    for index, row in nvdf.iterrows():
+        lat=row['Lat']
+        if len(lat)>4:
+            signlat = 1   
+            lenlat = len(lat)
+            latCor = signlat * (float(lat[:2]) + float(lat[2:lenlat-2])/60.0)
+            # nvdf.Lat[index]=str(latCor)
+            df.loc[index, 'Lat']=str(latCor) 
+            
+        lon=row['Lon']
+        if len(lat)>4:
+            signlat = 1   
+            signlon = -1
+            lenlon = len(lon)
+            lonCor = signlon * (float(lon[:3]) + float(lon[3:lenlon-2])/60.0)
+            df.loc[index, 'Lon']=str(lonCor) 
+            # nvdf.Lon[index]=str(lonCor)        
     
     # CONVERT DATA TO NUMERIC 
     cols=[i for i in nvdf.columns if i not in ["time","timestamp"]]
@@ -256,7 +274,7 @@ def readnavlog(ldir,processedpath):    # get list of files
         nvdf[col]=pd.to_numeric(nvdf[col],errors='ignore',downcast='float')    
     
     # DOESNT WORK WITH LAT LONG (JUTS NOW) SO CONVERT TO FLOAT AGAIN!!
-    nvdf["Lat"]=nvdf["Lat"].astype(float)
+    # nvdf["Lat"]=nvdf["Lat"].astype(float)
     nvdf["Lon"]=nvdf["Lon"].astype(float)
     nvdf["DRLat"]=nvdf["DRLat"].astype(float)
     nvdf["DRLon"]=nvdf["DRLon"].astype(float)
