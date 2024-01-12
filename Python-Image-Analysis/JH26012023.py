@@ -8,7 +8,6 @@ Processes jpg images from GAVIA AUV Grasshopper camera
 Corrects illumination by divinding by average image and normalisation
 Extracts metadata using exiftool.exe (must be in path) and converts to decimal coords
 
-
 """
 import os  
 import glob 
@@ -19,29 +18,31 @@ from scipy import ndimage
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import exiftool
+import exiftool 
 import numpy, PIL
 from PIL import Image
 import re
 
-# pick a subset to test code development on
-ssetname='20230619112232'
-
 #Path to process with two \\ at end, eg path=r"T:\Nicol\20190720141751\\"
-path=os.path.join('d:','ECOWind-accelerate','19thJune2023','files','images',ssetname)
+path=r"D:/Strangford Lough_June2021_TOM/AUV Data/images/20210615075602/"
 #Output folder eg "\12052022\\"
-                  
-save_folder=os.path.join('d:','ECOWind-accelerate','19thJune2023','files','py-processed-images',ssetname)
-
+#save_folder="\20230120123513_Proc\\"
+save_folder='answers/'
+#Image Enhancement method, 'CLAHE' or 'AverageSubtraction'
+ImageEnhancement='AverageSubtraction'
+#outpath
+outpath=os.path.join(path,save_folder)
+print(outpath)
+print(path)
+#path to ExifTool:
+exiftool_path = r'D:/Strangford Lough_June2021_TOM/AUV Data/images/20210615075602/'
 #Makes save folder
 try: 
-    os.mkdir(path+save_folder) 
+    #os.mkdir(path+save_folder) 
+    os.mkdir(os.path.join(path,save_folder))
 except OSError as error: 
     print(error)
     
-    
-#Image Enhancement method, 'CLAHE' or 'AverageSubtraction'
-ImageEnhancement='AverageSubtraction'
     
  #liests files   
 files=glob.glob(path+'*.jpg')
@@ -54,12 +55,11 @@ h,w,d=(io.imread(files[0])).shape
 
 N=len(files)
 # Create a numpy array of floats to store the average (assume RGB images)
-arr=numpy.zeros((h,w,3),numpy.float)
+arr=numpy.zeros((h,w,3),float)
 
 # Build up average pixel intensities, casting each image as an array of floats
 for im in files:
-    #imarr=numpy.array(Image.open(im),dtype=numpy.float)
-    imarr=numpy.array(io.imread(im),dtype=numpy.float)
+    imarr=numpy.array(io.imread(im),dtype=float)
     arr=arr+imarr/N
 
 # Round values in array and cast as 8-bit integer
@@ -67,8 +67,8 @@ arr1=numpy.array(numpy.round(arr),dtype=numpy.uint8)
 
 # Generate, save and preview final image
 out=Image.fromarray(arr1,mode="RGB")
-out.save(path+"Average.png")
-#out.show()
+out.save(os.path.join(outpath,"Average.png"))
+out.show()
 
 
 df = pd.DataFrame(columns=['Image_Name','path', 'altitude', 'depth','heading','lat','lon','pitch','roll','surge','sway'])
@@ -76,6 +76,14 @@ df = pd.DataFrame(columns=['Image_Name','path', 'altitude', 'depth','heading','l
 
 
 loopy=range(len(files))
+
+os.chdir(exiftool_path)
+# Get the current working directory
+current_directory = os.getcwd()
+
+# Print the current working directory
+print("Current Working Directory:", current_directory)
+
 
 with exiftool.ExifToolHelper() as et:
         metadata = et.get_metadata(files)
@@ -122,7 +130,7 @@ for i in loopy:
   
     
     if ImageEnhancement=="AverageSubtraction":
-        im1=numpy.array(io.imread(file),dtype=numpy.float)
+        im1=numpy.array(io.imread(file),dtype=float)
         imcor=im1-arr
         out2=skimage.exposure.rescale_intensity(imcor, out_range='uint8')
     if ImageEnhancement=="CLAHE":
@@ -134,10 +142,10 @@ for i in loopy:
 
     #
     
-    io.imsave(path+save_folder+ os.path.basename(file),out2)
+    io.imsave(os.path.join(path,save_folder, os.path.basename(file)),out2)
 
     #df.loc[i] = [os.path.basename(file),file,altitude,depth,heading,latCor,lonCor,str(float(pitch)+270),roll,surge,sway]
     df.loc[i] = [os.path.basename(file),file,altitude,str(-float(depth)),heading,latCor,lonCor,pitch,roll,surge,sway]
     
     
-df.to_csv(path+save_folder+'coords.csv')
+df.to_csv(os.path.join(path,save_folder,'coords.csv'))
