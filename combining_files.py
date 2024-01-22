@@ -1,3 +1,4 @@
+
 ######################################################################################################################
 ##### A .py for combining all of the AUV files into one big one with pictures and the coordinates
 #####################################################################################################################
@@ -5,10 +6,11 @@
 #Installing libraries
 import os
 import shutil
+import random
 
 #defining necessary paths
-path=r"C:/Users/phd01tm/OneDrive - SAMS/Strangford loch AUV data/AUV data/Images/"
-destination_directory= r"C:/Users/phd01tm/OneDrive - SAMS/Strangford loch AUV data/AUV data/Images/Processed"
+path=r"C:/Users/phd01tm/OneDrive - SAMS/Strangford loch AUV data/AUV data/Images_nephrops/"
+destination_directory= r"C:/Users/phd01tm/OneDrive - SAMS/Strangford loch AUV data/AUV data/Images_nephrops/Processed"
 csv_filename = 'coords.csv'
 i=0
 
@@ -72,7 +74,7 @@ for files in os.listdir(path):
             new_filename = f"coords_{i}.csv"
             print(new_filename)
             os.rename(source_path, os.path.join(path_2, new_filename))
-            destination_path = os.path.join(destination_directory, csv_filename)
+            destination_path = os.path.join(destination_directory, new_filename)
 
             # Move the CSV file to the destination directory
             source_path = os.path.join(path_2, new_filename)
@@ -82,8 +84,43 @@ for files in os.listdir(path):
             # Create the CSV file in the destination directory if it doesn't exist
             destination_path = os.path.join(path_2, csv_filename)
             with open(destination_path, 'x') as file:
-                print(f"File '{csv_filename}' created and moved successfully.")
+                print(f"File '{csv_filename}' created and moved successfully. but new")
     except shutil.Error as e:
             print(f"Error moving or creating file: {e}")
     except IOError as e:
             print(f"Error accessing or creating file: {e}")
+
+    def sample_images(source_folder, destination_folder, sample_size):
+    # Ensure the source folder exists
+        if not os.path.exists(source_folder):
+            print(f"Source folder '{source_folder}' does not exist.")
+            return
+
+        # Create the destination folder if it doesn't exist
+        os.makedirs(destination_folder, exist_ok=True)
+
+        # Get a list of all files in the source folder
+        all_images = [f for f in os.listdir(source_folder) if os.path.isfile(os.path.join(source_folder, f))]
+
+        # Check if there are enough images to sample
+        if len(all_images) < sample_size:
+            print("Not enough images to sample.")
+            return
+
+        # Sample random images from the list
+        sampled_images = random.sample(all_images, sample_size)
+
+        # Copy the sampled images to the destination folder
+        for image in sampled_images:
+            source_path = os.path.join(source_folder, image)
+            destination_path = os.path.join(destination_folder, image)
+            shutil.copyfile(source_path, destination_path)
+
+        print(f"{sample_size} images sampled and copied to '{destination_folder}'.")
+
+# Example usage:
+source_folder = r"C:/Users/phd01tm/OneDrive - SAMS/Strangford loch AUV data/AUV data/Images_nephrops/Processed"
+destination_folder = r"C:/Users/phd01tm/OneDrive - SAMS/Strangford loch AUV data/AUV data/Images_nephrops/Processed_sampled"
+sample_size = 200  # Adjust this to the desired number of sampled images
+
+sample_images(source_folder, destination_folder, sample_size)
