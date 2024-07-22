@@ -27,12 +27,15 @@ def readctdlog(ldir,processedpath):    # get list of files
     flelist=glob.glob(ctdfiles)
         
     # for each file, read to pandas dataframe and concatenate
-    for count, files in enumerate(flelist):
-        if count==0:
-            ctdf=pd.read_xml(files)
-        else:
-            df=pd.read_xml(files,names=None)
-            ctdf=pd.concat([ctdf,df],ignore_index=True)
+    for count, fles in enumerate(flelist):
+        xml = et.parse(fles)
+        element=xml.getroot().find('entry')
+        if element:
+            if count==0:
+                ctdf=pd.read_xml(fles)
+            else:
+                df=pd.read_xml(fles,names=None)
+                ctdf=pd.concat([ctdf,df],ignore_index=True)
     # save as .csv file
     ctdf.to_csv(os.path.join(processedpath,'CTDdata.csv'))   
 
@@ -52,6 +55,7 @@ def readnavlog(ldir,processedpath):    # get list of files
             root = tree.getroot()
 
             drheading = []
+            drvelocity=[]
             drpitch=[]
             droll=[]
             drlat = []
@@ -60,6 +64,7 @@ def readnavlog(ldir,processedpath):    # get list of files
             pitch=[]
             roll=[]
             depth=[]
+            velocity=[]
             lat=[]
             lon=[]
 
@@ -72,6 +77,12 @@ def readnavlog(ldir,processedpath):    # get list of files
             for node in root.findall("./entry/dead-reckoning-orientation/roll"):
                 droll.append(node.text)
 
+            for node in root.findall("./entry/dead-reckoning-velocity/surge"):
+                drvelocity.append(node.text)           
+                
+            for node in root.findall("./entry/velocity/surge"):
+                velocity.append(node.text)            
+                
             for node in root.findall("./entry/dead-reckoning-position/lon"):
                 drlon.append(node.text)
 
@@ -97,8 +108,9 @@ def readnavlog(ldir,processedpath):    # get list of files
                 lon.append(ptch.text)    
 
             nddf = pd.DataFrame(
-                                   list(zip(drheading, drpitch, droll,drlat,drlon,heading, pitch, roll,depth,lat, lon)), 
-                                   columns=['DRHeading', 'DRPitch', 'DRRoll','DRLat','DRLon','Heading','Pitch','Roll','Depth','Lat','Lon'])  
+                                   list(zip(drheading,drvelocity, drpitch, droll,drlat,drlon,velocity,heading, pitch, roll,depth,lat, lon)), 
+                                   columns=['DRHeading', 'DRVelocity','DRPitch', 'DRRoll','DRLat','DRLon','speed','Heading','Pitch','Roll','Depth','Lat','Lon'])  
+
             nvdf=pd.concat([rtdf, nddf], axis=1)
 
         else:
@@ -107,6 +119,7 @@ def readnavlog(ldir,processedpath):    # get list of files
             root = tree.getroot()
 
             drheading = []
+            drvelocity=[]
             drpitch=[]
             droll=[]
             drlat = []
@@ -115,6 +128,7 @@ def readnavlog(ldir,processedpath):    # get list of files
             pitch=[]
             roll=[]
             depth=[]
+            velocity=[]
             lat=[]
             lon=[]
 
@@ -127,6 +141,12 @@ def readnavlog(ldir,processedpath):    # get list of files
             for node in root.findall("./entry/dead-reckoning-orientation/roll"):
                 droll.append(node.text)
 
+            for node in root.findall("./entry/dead-reckoning-velocity/surge"):
+                drvelocity.append(node.text)           
+                
+            for node in root.findall("./entry/velocity/surge"):
+                velocity.append(node.text)
+            
             for node in root.findall("./entry/dead-reckoning-position/lon"):
                 drlon.append(node.text)
 
@@ -150,10 +170,14 @@ def readnavlog(ldir,processedpath):    # get list of files
 
             for ptch in root.findall("./entry/position/lon"):
                 lon.append(ptch.text)    
+            
 
+            
             nddf = pd.DataFrame(
-                                   list(zip(drheading, drpitch, droll,drlat,drlon,heading, pitch, roll,depth,lat, lon)), 
-                                   columns=['DRHeading', 'DRPitch', 'DRRoll','DRLat','DRLon','Heading','Pitch','Roll','Depth','Lat','Lon'])  
+                                   list(zip(drheading,drvelocity, drpitch, droll,drlat,drlon,velocity,heading, pitch, roll,depth,lat, lon)), 
+                                   columns=['DRHeading', 'DRVelocity','DRPitch', 'DRRoll','DRLat','DRLon','speed','Heading','Pitch','Roll','Depth','Lat','Lon'])  
+
+            
             df=pd.concat([rtdf, nddf], axis=1)
 
             nvdf=pd.concat([nvdf,df],ignore_index=True)            
@@ -197,10 +221,8 @@ def readnavlog(ldir,processedpath):    # get list of files
                 'detect-ins-type',
                 'ins-detect-timeout',
                 'override-propulsion-ip',
-                'send-nav-device-data',
                 'observe-timer-on',
                 'predict-timer-on',
-                'passthrough-udp-actuator',
                 'binary-log',
                 'broadcast-interface',
                 'broadcast-enable',
@@ -224,7 +246,25 @@ def readnavlog(ldir,processedpath):    # get list of files
     nvdf["Lon"]=nvdf["Lon"].astype(str).str.replace('W', '')
     nvdf["DRLat"]=nvdf["DRLat"].astype(str).str.replace('N', '')
     nvdf["DRLon"]=nvdf["DRLon"].astype(str).str.replace('W', '')
-    
+
+
+    for index, row in nvdf.iterrows():
+        lat=row['Lat']
+        if len(lat)>4:
+            signlat = 1   
+            lenlat = len(lat)
+            latCor = signlat * (float(lat[:2]) + float(lat[2:lenlat-2])/60.0)
+            # nvdf.Lat[index]=str(latCor)
+            df.loc[index, 'Lat']=str(latCor) 
+            
+        lon=row['Lon']
+        if len(lat)>4:
+            signlat = 1   
+            signlon = -1
+            lenlon = len(lon)
+            lonCor = signlon * (float(lon[:3]) + float(lon[3:lenlon-2])/60.0)
+            df.loc[index, 'Lon']=str(lonCor) 
+            # nvdf.Lon[index]=str(lonCor)        
     
     # CONVERT DATA TO NUMERIC 
     cols=[i for i in nvdf.columns if i not in ["time","timestamp"]]
@@ -232,7 +272,7 @@ def readnavlog(ldir,processedpath):    # get list of files
         nvdf[col]=pd.to_numeric(nvdf[col],errors='ignore',downcast='float')    
     
     # DOESNT WORK WITH LAT LONG (JUTS NOW) SO CONVERT TO FLOAT AGAIN!!
-    nvdf["Lat"]=nvdf["Lat"].astype(float)
+    # nvdf["Lat"]=nvdf["Lat"].astype(float)
     nvdf["Lon"]=nvdf["Lon"].astype(float)
     nvdf["DRLat"]=nvdf["DRLat"].astype(float)
     nvdf["DRLon"]=nvdf["DRLon"].astype(float)
@@ -249,7 +289,6 @@ def readnavlog(ldir,processedpath):    # get list of files
 def readgpslog(ldir,processedpath):    # get list of files
     files=os.path.join(ldir,'*gps-*.xml')
     flelist=glob.glob(files)
-
     # for each file, read to pandas dataframe and concatenate
     for count, fles in enumerate(flelist):
         if count==0:
@@ -266,14 +305,17 @@ def readgpslog(ldir,processedpath):    # get list of files
 def readsbplog(ldir,processedpath):    # get list of files
     files=os.path.join(ldir,'*sbp*.xml')
     flelist=glob.glob(files)
-
+    sbpdf = pd.DataFrame()
     # for each file, read to pandas dataframe and concatenate
     for count, fles in enumerate(flelist):
-        if count==0:
-            sbpdf=pd.read_xml(fles)
-        else:
-            df=pd.read_xml(fles,names=None)
-            sbpdf=pd.concat([sbpdf,df],ignore_index=True)
+        xml = et.parse(fles)
+        element=xml.getroot().find('entry')
+        if element:
+            if count==0:
+                sbpdf=pd.read_xml(fles)
+            else:
+                df=pd.read_xml(fles,names=None)
+                sbpdf=pd.concat([sbpdf,df],ignore_index=True)
     # save as .csv file
     sbpdf.to_csv(os.path.join(processedpath,'SBPdata.csv'))       
     return sbpdf
@@ -282,14 +324,36 @@ def readsbplog(ldir,processedpath):    # get list of files
 def readaandlog(ldir,processedpath):    # get list of files
     files=os.path.join(ldir,'*aanderaa*.xml')
     flelist=glob.glob(files)
- 
+    aandf = pd.DataFrame()
     # for each file, read to pandas dataframe and concatenate
     for count, fles in enumerate(flelist):
-        if count==0:
-            aandf=pd.read_xml(fles)
-        else:
-            df=pd.read_xml(fles,names=None)
-            aandf=pd.concat([aandf,df],ignore_index=True)
+        xml = et.parse(fles)
+        element=xml.getroot().find('entry')
+        if element:
+            if count==0:
+                aandf=pd.read_xml(fles)
+            else:
+                df=pd.read_xml(fles,names=None)
+                aandf=pd.concat([aandf,df],ignore_index=True)
     # save as .csv file
     aandf.to_csv(os.path.join(processedpath,'aanderaadata.csv'))   
     return aandf
+
+### ECOPUCK data
+def readecolog(ldir,processedpath):    # get list of files
+    files=os.path.join(ldir,'*ecopuck-flntu*.xml')
+    flelist=glob.glob(files)
+    ecopuck = pd.DataFrame()
+    # for each file, read to pandas dataframe and concatenate
+    for count, fles in enumerate(flelist):
+        xml = et.parse(fles)
+        element=xml.getroot().find('entry')
+        if element:
+            if count==0:
+                ecopuck=pd.read_xml(fles)
+            else:
+                df=pd.read_xml(fles,names=None)
+                ecopuck=pd.concat([ecopuck,df],ignore_index=True)
+    # save as .csv file
+    ecopuck.to_csv(os.path.join(processedpath,'ecopuckdata.csv'))   
+    return ecopuck
