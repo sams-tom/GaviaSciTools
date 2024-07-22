@@ -338,3 +338,22 @@ def readaandlog(ldir,processedpath):    # get list of files
     # save as .csv file
     aandf.to_csv(os.path.join(processedpath,'aanderaadata.csv'))   
     return aandf
+
+### ECOPUCK data
+def readecolog(ldir,processedpath):    # get list of files
+    files=os.path.join(ldir,'*ecopuck-flntu*.xml')
+    flelist=glob.glob(files)
+    ecopuck = pd.DataFrame()
+    # for each file, read to pandas dataframe and concatenate
+    for count, fles in enumerate(flelist):
+        xml = et.parse(fles)
+        element=xml.getroot().find('entry')
+        if element:
+            if count==0:
+                ecopuck=pd.read_xml(fles)
+            else:
+                df=pd.read_xml(fles,names=None)
+                ecopuck=pd.concat([ecopuck,df],ignore_index=True)
+    # save as .csv file
+    ecopuck.to_csv(os.path.join(processedpath,'ecopuckdata.csv'))   
+    return ecopuck
