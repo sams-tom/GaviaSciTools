@@ -31,4 +31,4 @@ def export_log_data(logdir,processedpath):
         # read aanderaa data and convert to .csv format, output to data/aanderaa-files/
         aandf=rfuncs.readaandlog(logdir,processedpath)
 
-    return nvdf, ctdf, aandf, sbpdf, gpdf
+    return nvdf, gpdf
